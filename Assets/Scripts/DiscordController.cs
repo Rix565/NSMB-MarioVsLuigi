@@ -30,7 +30,7 @@ namespace NSMB {
         }
 
         public void Start() {
-#if UNITY_WEBGL || UNITY_WSA
+#if UNITY_WEBGL || UNITY_WSA || UNITY_ANDROID
         enabled = false;
 #endif
 
@@ -39,7 +39,7 @@ namespace NSMB {
 
 
         private bool Initialize() {
-#if UNITY_WEBGL || UNITY_WSA
+#if UNITY_WEBGL || UNITY_WSA || UNITY_ANDROID
         enabled = false;
         return false;
 #endif
@@ -84,7 +84,7 @@ namespace NSMB {
         }
 
         public unsafe void UpdateActivity() {
-#if UNITY_WEBGL || UNITY_WSA
+#if UNITY_WEBGL || UNITY_WSA || UNITY_ANDROID
         return;
 #endif
             if (!Application.isPlaying || discord == null) {
