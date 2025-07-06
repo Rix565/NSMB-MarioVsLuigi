@@ -366,6 +366,13 @@ namespace NSMB.Entities.Player {
             using var profilerScope = HostProfiler.Start("MarioPlayerAnimator.SetFacingDirection");
             float delta = Time.deltaTime;
 
+            float angleR = 108, angleL = 252; //Default angles, we can override them later. 
+            if (mario->CurrentPowerupState is PowerupState.BlueShell or PowerupState.MegaMushroom) {
+                //Hacky override that feels like something I'd put in one of my mods - HyperCat
+                angleR = 90;
+                angleL = 270;
+            }
+
             modelRotateInstantly = false;
             var freezable = f.Unsafe.GetPointer<Freezable>(EntityRef);
 
@@ -374,12 +381,12 @@ namespace NSMB.Entities.Player {
                 if (mario->IsInKnockback && (physicsObject->IsUnderwater || mario->IsInWeakKnockback)) {
                     right = mario->KnockbackWasOriginallyFacingRight;
                 }
-                modelRotationTarget = Quaternion.Euler(0, right ? 108 : 252, 0);
+                modelRotationTarget = Quaternion.Euler(0, right ? angleR : angleL, 0);
                 modelRotateInstantly = true;
 
             } else if (mario->IsDead) {
                 if (mario->FireDeath && mario->DeathAnimationFrames == 0) {
-                    modelRotationTarget = Quaternion.Euler(0, mario->FacingRight ? 108 : 252, 0);
+                    modelRotationTarget = Quaternion.Euler(0, mario->FacingRight ? angleR : angleL, 0);
                 } else {
                     modelRotationTarget = Quaternion.Euler(0, 180, 0);
                 }
@@ -393,7 +400,7 @@ namespace NSMB.Entities.Player {
 
             } else if (wasTurnaround || mario->IsSkidding || mario->IsTurnaround || animator.GetCurrentAnimatorStateInfo(0).IsName("turnaround")) {
                 bool flip = mario->FacingRight ^ (animator.GetCurrentAnimatorStateInfo(0).IsName("turnaround") || mario->IsSkidding);
-                modelRotationTarget = Quaternion.Euler(0, flip ? 252 : 108, 0);
+                modelRotationTarget = Quaternion.Euler(0, flip ? angleL : angleR, 0);
                 modelRotateInstantly = true;
 
             } else if (f.Unsafe.TryGetPointer(mario->CurrentSpinner, out Spinner* spinner)
@@ -409,13 +416,12 @@ namespace NSMB.Entities.Player {
                 modelRotateInstantly = true;
 
             } else if (mario->IsWallsliding) {
-                modelRotationTarget = Quaternion.Euler(0, mario->WallslideRight ? 108 : 252, 0);
+                modelRotationTarget = Quaternion.Euler(0, mario->WallslideRight ? angleR : angleL, 0);
             } else {
-                modelRotationTarget = Quaternion.Euler(0, mario->FacingRight ? 108 : 252, 0);
+                modelRotationTarget = Quaternion.Euler(0, mario->FacingRight ? angleR : angleL, 0);
             }
 
             propellerVelocity = Mathf.Clamp(propellerVelocity + (1200 * ((mario->IsSpinnerFlying || mario->IsPropellerFlying || mario->UsedPropellerThisJump) ? -1 : 1) * delta), -2500, -300);
-
             wasTurnaround = mario->IsTurnaround;
         }
 
@@ -1218,6 +1224,11 @@ namespace NSMB.Entities.Player {
                 return;
             }
 
+            var mario = PredictedFrame.Unsafe.GetPointer<MarioPlayer>(e.Entity);
+            if (mario->IsCrouching || mario->IsInShell || mario->IsSpinnerFlying || mario->IsPropellerFlying
+                || mario->IsDrilling || mario->IsInKnockback || mario->IsWallsliding) {
+                return;
+            }
             animator.Play(StateJumplanding);
         }
 
