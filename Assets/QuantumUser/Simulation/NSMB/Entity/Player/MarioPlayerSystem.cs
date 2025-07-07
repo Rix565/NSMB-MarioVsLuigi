@@ -1,6 +1,7 @@
 using Photon.Deterministic;
 using Quantum.Collections;
 using Quantum.Profiling;
+using Quantum.Prototypes;
 using System;
 using static IInteractableTile;
 
@@ -383,7 +384,7 @@ namespace Quantum {
             }
 
             if (!mario->DoEntityBounce
-                && f.Unsafe.TryGetPointer(mario->CurrentSpinner, out Spinner* Spinner) && Spinner->ArmPosition <= FP._0_75
+                && f.Unsafe.TryGetPointer(mario->CurrentSpinner, out Spinner* Spinner) && mario->ProjectileDelayFrames == 0
                 && !f.Exists(mario->HeldEntity) && !mario->IsInShell) {
                 // Jump of spinner
                 physicsObject->Velocity.Y = physics.SpinnerLaunchVelocity;
@@ -1026,9 +1027,9 @@ namespace Quantum {
                 int framesInKnockback = f.Number - mario->KnockbackTick;
                 if (mario->DoEntityBounce
                     || (swimming && framesInKnockback > 60)
-                    || (!swimming && physicsObject->IsTouchingGround && FPMath.Abs(physicsObject->Velocity.X) < FP._0_33 && framesInKnockback > 20)
+                    || (!swimming && physicsObject->IsTouchingGround && FPMath.Abs(physicsObject->Velocity.X) < FP._0_33 && framesInKnockback > 45)
                     || (!swimming && physicsObject->IsTouchingGround && framesInKnockback > 120)
-                    || (!swimming && mario->IsInWeakKnockback && framesInKnockback > 30)) {
+                    || (!swimming && mario->IsInWeakKnockback && framesInKnockback > 45)) {
 
                     mario->ResetKnockback(f, entity);
                     return;
@@ -2180,7 +2181,7 @@ namespace Quantum {
             if ((marioA->DamageInvincibilityFrames <= 0 || marioA->CurrentKnockback != KnockbackStrength.None || marioA->KnockbackGetupFrames > 0) && (!marioA->IsInKnockback || marioAPhysics->IsTouchingGround)
                 && (marioB->DamageInvincibilityFrames <= 0 || marioB->CurrentKnockback != KnockbackStrength.None || marioB->KnockbackGetupFrames > 0) && (!marioB->IsInKnockback || marioBPhysics->IsTouchingGround)) {
 
-                if (!marioA->IsInShell && marioB->IsInShell) {
+                if (!marioA->IsInShell && !marioB->IsInShell) {
                     var marioAPhysicsInfo = f.FindAsset(marioA->PhysicsAsset);
                     var marioBPhysicsInfo = f.FindAsset(marioB->PhysicsAsset);
                     if (FPMath.Abs(marioAPhysics->Velocity.X) > marioAPhysicsInfo.WalkMaxVelocity[marioAPhysicsInfo.WalkSpeedStage]
